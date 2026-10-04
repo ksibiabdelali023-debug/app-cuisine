@@ -681,4 +681,3 @@ with t3:
                         f'<span class="badge" style="background:{c_lec}">Leclerc {p_lec * c:.2f} €</span>'
                         f'<span class="badge" style="background:{c_lid}">Lidl {p_lid * c:.2f} €</span>',
                         unsafe_allow_html=True)
-
