@@ -1,25 +1,16 @@
-# 🎈 Blank app template
+# MiamMiam
 
-A simple Streamlit app template for you to modify!
+Recettes halal et comparateur de courses Leclerc / Lidl (Streamlit).
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+    pip install -r requirements.txt
+    streamlit run app.py
+    python tests/test_miammiam.py
 
-### How to run it on your own machine
-
-Prerequisite: install `uv` if you don't already have it.
-
-```
-$ curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-1. Sync the dependencies
-
-   ```
-   $ uv sync
-   ```
-
-2. Run the app
-
-   ```
-   $ uv run streamlit run streamlit_app.py
-   ```
+## Organisation
+- `app.py` : point d'entrée (en-tête, accessibilité, onglets)
+- `miammiam/donnees.py` : recettes, ingrédients, prix estimés, photos, rayons (à modifier ici)
+- `miammiam/calculs.py` : prix, quantités, listes de courses (sans Streamlit, testé)
+- `miammiam/services.py` : photos Wikipédia et prix Open Prices (sans Streamlit, testé)
+- `miammiam/theme.py` : couleurs, contrastes WCAG, CSS (sans Streamlit, testé)
+- `miammiam/etat.py`, `ressources.py`, `ui.py`, `pages.py` : partie Streamlit
+- `.streamlit/config.toml` : thème clair (à garder à côté de app.py)
