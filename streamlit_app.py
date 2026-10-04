@@ -134,7 +134,7 @@ with onglet3:
                 c_leclerc = "#2ecc71" if p_leclerc < p_lidl else "#e74c3c"
                 c_lidl = "#2ecc71" if p_lidl < p_leclerc else "#e74c3c"
                 
-                col_ing, col_lec, col_lid = st.columns()
+                col_ing, col_lec, col_lid = st.columns(3)
                 col_ing.write(f"• {ing}")
                 col_lec.markdown(f'<span class="price-leclerc" style="background-color: {c_leclerc}; color: white;">Leclerc: {p_leclerc:.2f}€</span>', unsafe_allow_html=True)
                 col_lid.markdown(f'<span class="price-lidl" style="background-color: {c_lidl}; color: white;">Lidl: {p_lidl:.2f}€</span>', unsafe_allow_html=True)
