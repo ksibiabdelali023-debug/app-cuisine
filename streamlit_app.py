@@ -70,10 +70,9 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# 4. Visuels & Cartes sécurisés (.get() pour parer aux KeyErrors)
+# 4. Visuels & Cartes sécurisés
 def generer_visuel_html(r, hauteur=170):
     base = r["base"]
-    # Sécurité si la catégorie ou l'emoji n'existe pas exactement
     couleur_fond = DEGRADES.get(r["categorie"], "linear-gradient(135deg, #E5E7EB, #9CA3AF)")
     emoji_plat = EMOJIS.get(base, "🍽️")
     photo_html = f'<div class="photo-bloc" style="height:{hauteur}px; background-image:url(\'{r["image"]}\'); position:relative; z-index:2;"></div>' if r.get("image") else ""
@@ -133,7 +132,7 @@ def ouvrir_fiche_dialog(r):
     def _fiche(): _corps_fiche_dialog(r)
     _fiche()
 
-# 5. Traitement sécurisé des données initiales
+# 5. Traitement sécurisé des données
 recettes_structurees = []
 recettes_par_id = {}
 for idx, item in enumerate(BASE):
@@ -157,3 +156,4 @@ def _pills(libelle, options, defaut, cle, format_func=str):
 def vue_recettes(recettes):
     recherche = st.text_input("Rechercher une recette", placeholder="Poulet, chocolat, salade…")
     trouvees = [r for r in recettes if recherche.lower() in r["nom"].lower()]
+    compteurs = {lib: sum(1 for r in trouvees if cat is None or r["categorie"] == cat) for lib, cat in CATEGORIES.items()}
