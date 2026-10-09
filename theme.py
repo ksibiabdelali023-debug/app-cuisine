@@ -152,13 +152,15 @@ _CSS = Template("""
 
     /* Boutons des cartes recette : « Voir la recette » / « Ajouter » côte à côte */
     div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"] {gap: 10px;}
-    div[data-testid="stVerticalBlockBorderWrapper"] .stButton > button {
+    div[data-testid="stVerticalBlockBorderWrapper"] .stButton button {
         min-height: 52px; font-size: 1.05rem; box-shadow: 0 2px 0 ${sec_bord}; white-space: normal;}
-    .stButton > button, .stDownloadButton > button {min-height: 48px; width: 100%; border-radius: 14px;
+    /* st.button(help=...) enveloppe le bouton dans un bloc d'infobulle : on cible donc « button » sans « > » */
+    .stButton, .stDownloadButton, [data-testid="stTooltipHoverTarget"] {width: 100%;}
+    .stButton button, .stDownloadButton button {min-height: 48px; width: 100%; border-radius: 14px;
            font-weight: 700; font-size: 1rem; border: 2px solid ${sec_bord}; background: ${sec_bg};}
-    .stButton > button *, .stDownloadButton > button * {color: ${sec_txt} !important;}
-    .stButton > button[kind="primary"], button[data-testid="stBaseButton-primary"] {background: ${prim_bg}; border-color: ${prim_bg};}
-    .stButton > button[kind="primary"] *, button[data-testid="stBaseButton-primary"] * {color: ${prim_txt} !important;}
+    .stButton button *, .stDownloadButton button * {color: ${sec_txt} !important;}
+    .stButton button[kind="primary"], button[data-testid="stBaseButton-primary"] {background: ${prim_bg}; border-color: ${prim_bg};}
+    .stButton button[kind="primary"] *, button[data-testid="stBaseButton-primary"] * {color: ${prim_txt} !important;}
 
     .mcard {border-radius: 16px; padding: 14px 16px; font-weight: 600; display: flex;
             flex-direction: column; gap: 2px; border: 3px solid ${contour};}
