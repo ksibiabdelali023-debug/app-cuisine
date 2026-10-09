@@ -1,14 +1,65 @@
-"""Les trois vues de l'application : Recettes, Panier, Courses."""
+"""Les trois vues de l'application : Recettes, Panier, Courses, Planning."""
 import re
 from datetime import date
-
 import streamlit as st
 
-import etat, planning, ressources
+import etat
+import planning
+import ressources
 from calculs import (agreger, correspond_filtre, format_prix, grouper_par_rayon, ligne_ingredient, meilleur_mixte,
                       meilleure_enseigne, minutes, cout, prix_minimum, texte_liste, totaux)
 from donnees import CATEGORIES, CODES_BARRES, FILTRES, ICONES_CATEGORIES
 from ui import carte_recette
+
+
+def injecter_style_premium():
+    """Injecte un style CSS moderne inspiré des meilleures applications mobiles."""
+    st.markdown("""
+        <style>
+        /* Conteneurs de totaux (Cartes de prix) */
+        .mcard {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 12px;
+        }
+        .mcard span {
+            display: block;
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 4px;
+        }
+        .mcard b {
+            font-size: 22px;
+            color: #111827;
+        }
+        
+        /* Encart du vainqueur tarifaire */
+        .gagnant {
+            background-color: #ECFDF5;
+            border: 1px solid #10B981;
+            color: #065F46;
+            padding: 14px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-size: 15px;
+        }
+        
+        /* Titres de rayons épurés */
+        .titre-rayon {
+            font-size: 18px;
+            font-weight: 600;
+            color: #374151;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #E5E7EB;
+            padding-bottom: 4px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
 
 def _pills(libelle, options, defaut, cle, format_func=str):
@@ -19,6 +70,7 @@ def _pills(libelle, options, defaut, cle, format_func=str):
 
 
 def page_recettes(recettes):
+    injecter_style_premium()
     recherche = st.text_input("Rechercher une recette", placeholder="Poulet, chocolat, salade…")
     trouvees = [r for r in recettes if recherche.lower() in r["nom"].lower()]
     compteurs = {lib: sum(1 for r in trouvees if cat is None or r["categorie"] == cat)
@@ -58,6 +110,7 @@ def page_recettes(recettes):
 
 
 def page_panier(par_id):
+    injecter_style_premium()
     st.header("Mon panier")
     sel = [par_id[i] for i in st.session_state.selection]
     if not sel:
@@ -75,6 +128,7 @@ def page_panier(par_id):
 
 
 def page_courses(par_id):
+    injecter_style_premium()
     st.header("Mes courses")
     sel = [par_id[i] for i in st.session_state.selection]
     if not sel:
@@ -83,65 +137,66 @@ def page_courses(par_id):
 
     tot_lec, tot_lid = totaux(sel, etat.coef)
     c1, c2 = st.columns(2)
-    c1.markdown(f'<div class="mcard leclerc"><span>Total Leclerc</span><b>{format_prix(tot_lec)}</b></div>',
+    c1.markdown(f'<div class="mcard"><span>Total Leclerc</span><b>{format_prix(tot_lec)}</b></div>',
                 unsafe_allow_html=True)
-    c2.markdown(f'<div class="mcard lidl"><span>Total Lidl</span><b>{format_prix(tot_lid)}</b></div>',
+    c2.markdown(f'<div class="mcard"><span>Total Lidl</span><b>{format_prix(tot_lid)}</b></div>',
                 unsafe_allow_html=True)
 
     gagnant, ecart = meilleure_enseigne(tot_lec, tot_lid)
     if gagnant:
-        st.markdown(f'<div class="gagnant" role="status"><b>Le moins cher : {gagnant}</b><br>'
-                    f'Vous économisez {format_prix(ecart)} en achetant tout là-bas.</div>',
+        st.markdown(f'<div class="gagnant" role="status"><b>✨ L\'enseigne la moins chère : {gagnant}</b><br>'
+                    f'Vous économisez {format_prix(ecart)} en faisant toutes vos courses dans ce magasin.</div>',
                     unsafe_allow_html=True)
     else:
-        st.info("Les prix sont identiques dans les deux enseignes.")
+        st.info("Les prix globaux sont identiques dans les deux enseignes.")
 
     agg = agreger(sel, etat.coef)
     mixte = meilleur_mixte(agg)
     gain = min(tot_lec, tot_lid) - mixte
     if gain > 0.005:
-        st.write(f"En achetant chaque article dans l'enseigne la moins chère, vous paieriez "
-                 f"{format_prix(mixte)}, soit encore {format_prix(gain)} d'économie.")
+        st.success(f"💡 Optimisation : En achetant chaque ingrédient individuellement là où il est le moins cher, "
+                   f"votre total descend à **{format_prix(mixte)}** (soit **{format_prix(gain)}** d'économie supplémentaire).")
 
-    st.caption(f"Prix : {len(CODES_BARRES)} ingrédient(s) liés à Open Prices (relevés réels, mis à jour "
-               "toutes les 24 h) ; les autres sont des estimations.")
-    st.button("Actualiser les prix maintenant", on_click=st.cache_data.clear)
+    st.caption(f"Prix : {len(CODES_BARRES)} ingrédient(s) liés à Open Prices (relevés réels mis à jour "
+               "toutes les 24h) ; les autres sont des estimations basées sur le marché moyen.")
+    st.button("🔄 Actualiser les prix maintenant", on_click=st.cache_data.clear)
 
-    with st.expander("Changer le nombre de personnes pour toutes les recettes"):
+    with st.expander("⚙️ Changer le nombre de personnes global"):
         st.number_input("Nombre de personnes", 1, 12, 2, key="global_pers")
         st.button("Appliquer à toutes les recettes", on_click=etat.appliquer_a_toutes)
 
     # Liste de courses à cocher, classée par rayon
     groupes = grouper_par_rayon(agg)
     nb_articles = sum(len(lignes) for _, lignes in groupes)
-    st.subheader(f"Liste de courses : {nb_articles} articles")
+    st.subheader(f"📋 Liste de courses ({nb_articles} articles)")
     cles = []
     for rayon, lignes in groupes:
-        st.markdown(f'<h3 class="titre">{rayon}</h3>', unsafe_allow_html=True)
+        st.markdown(f'<div class="titre-rayon">{rayon}</div>', unsafe_allow_html=True)
         for nom, unite, q, p_lec, p_lid in lignes:
             cle = "coche_" + re.sub(r"\W+", "_", f"{nom}_{unite}")
             cles.append(cle)
             mag = "Leclerc" if p_lec <= p_lid else "Lidl"
-            st.checkbox(f"{ligne_ingredient(q, unite, nom)} : Leclerc {format_prix(p_lec)}, "
-                        f"Lidl {format_prix(p_lid)}. Moins cher : {mag}.", key=cle)
+            st.checkbox(f"{ligne_ingredient(q, unite, nom)} (Leclerc: {format_prix(p_lec)} | Lidl: {format_prix(p_lid)}) • Réduit chez : {mag}", key=cle)
+    
     coches = sum(1 for k in cles if st.session_state.get(k))
     st.progress(coches / len(cles) if cles else 0.0, text=f"{coches} sur {len(cles)} articles cochés")
 
-    st.download_button("Télécharger la liste de courses (texte)", texte_liste(groupes),
+    st.download_button("💾 Télécharger la liste (.txt)", texte_liste(groupes),
                        file_name="liste_courses.txt", mime="text/plain")
 
-    st.subheader("Détail par recette")
+    st.subheader("🔍 Détail par recette")
     for r in sel:
         rid = r["id"]
-        with st.expander(f"{r['nom']} : {etat.personnes(rid)} personnes"):
-            etat.champ_personnes(rid, "c_", f"Nombre de personnes pour {r['nom']}")
+        with st.expander(f"{r['nom']} ({r.get('base', '')}) : {etat.personnes(rid)} personnes"):
+            # Permettre l'ajustement unitaire du nombre de personnes
+            st.number_input("Ajuster les parts", 1, 12, value=int(etat.personnes(rid)), key=f"c_{rid}")
             c = etat.coef(rid)
             for q, u, n, p_lec, p_lid in r["ingredients"]:
-                st.write(f"{ligne_ingredient(q * c, u, n)} : Leclerc {format_prix(p_lec * c)}, "
-                         f"Lidl {format_prix(p_lid * c)}")
+                st.write(f"• {ligne_ingredient(q * c, u, n)} : Leclerc {format_prix(p_lec * c)} | Lidl {format_prix(p_lid * c)}")
 
 
 def page_planning(recettes, par_id):
+    injecter_style_premium()
     st.header("Planning des repas")
     debut = st.session_state.semaine_debut
     jours = planning.semaine(debut)
@@ -151,55 +206,30 @@ def page_planning(recettes, par_id):
     n1.button("◀ Précédente", on_click=etat.changer_semaine, args=(-7,), key="sem_prec")
     n2.button("Aujourd'hui", on_click=etat.changer_semaine, args=(0,), key="sem_auj")
     n3.button("Suivante ▶", on_click=etat.changer_semaine, args=(7,), key="sem_suiv")
-    st.markdown(f'<h3 class="titre">{planning.libelle_jour(jours[0])} au {planning.libelle_jour(jours[-1])}</h3>',
-                unsafe_allow_html=True)
+    
+    st.markdown(f'<h3 style="text-align:center; color:#374151;">Semaine du {planning.libelle_jour(jours[0])} au {planning.libelle_jour(jours[-1])}</h3>', unsafe_allow_html=True)
 
     ids_sem = planning.ids_semaine(plan, debut)
     if ids_sem:
         lec, lid = totaux([par_id[i] for i in ids_sem], etat.coef)
-        st.caption(f"{len(ids_sem)} recette(s) prévue(s) cette semaine. Courses estimées : "
-                   f"Leclerc {format_prix(lec)} · Lidl {format_prix(lid)}.")
-        st.button("🛒 Envoyer les recettes de la semaine au panier", type="primary",
+        st.caption(f"📊 {len(ids_sem)} recette(s) planifiée(s). Estimation : Leclerc {format_prix(lec)} • Lidl {format_prix(lid)}")
+        st.button("🛒 Transférer le planning dans le panier", type="primary",
                   on_click=etat.planning_vers_panier, key="plan_vers_panier")
     else:
-        st.info("Aucune recette prévue cette semaine. Ouvrez un jour ci-dessous pour en ajouter.")
+        st.info("Aucune recette planifiée. Cliquez sur un jour ci-dessous pour composer vos repas.")
 
-    # Recettes proposées : les plats de base + celles déjà dans le panier
+    # Recettes disponibles
     options = {r["id"]: r for r in recettes if r["nom"] == r["base"]}
     for rid in st.session_state.selection:
         options.setdefault(rid, par_id[rid])
-    ids = list(options)
 
     aujourdhui = date.today()
     for jour in jours:
         iso = jour.isoformat()
-        nb = len(planning.ids_du_jour(plan, iso))
-        titre = planning.libelle_jour(jour) + (" · aujourd'hui" if jour == aujourdhui else "")
-        titre += f" · {nb} recette{'s' if nb > 1 else ''}" if nb else ""
-        with st.expander(titre, expanded=(jour == aujourdhui)):
-            for repas in planning.REPAS:
-                st.markdown(f'<h3 class="titre">{planning.ICONES_REPAS[repas]} {repas}</h3>',
-                            unsafe_allow_html=True)
-                for rid in plan.get(iso, {}).get(repas, []):
-                    r = par_id[rid]
-                    c_nom, c_btn = st.columns([4, 1])
-                    c_nom.markdown(f"**{r['nom']}**  \n{r['categorie']} · {r['temps']}")
-                    c_btn.button("✖", key=f"rm_{iso}_{repas}_{rid}", help=f"Retirer du planning : {r['nom']}",
-                                 on_click=etat.deplanifier, args=(iso, repas, rid, r["nom"]))
-                cle = f"ajout_{iso}_{repas}"
-                st.selectbox(f"Ajouter au {repas.lower()}", ids, index=None, key=cle,
-                             format_func=lambda i: f"{options[i]['nom']} ({options[i]['categorie']})",
-                             placeholder="Choisir une recette…")
-                st.button(f"➕ Ajouter au {repas.lower()}", key=f"btn_{cle}",
-                          on_click=etat.planifier_depuis_liste, args=(iso, repas, cle, par_id))
-            jour_ids = planning.ids_du_jour(plan, iso)
-            if jour_ids:
-                lec, lid = totaux([par_id[i] for i in jour_ids], etat.coef)
-                st.caption(f"Courses du jour : Leclerc {format_prix(lec)} · Lidl {format_prix(lid)}")
-
-    if ids_sem:
-        st.download_button("Télécharger le planning (texte)", planning.texte_planning(plan, par_id, debut),
-                           file_name="planning_repas.txt", mime="text/plain")
-        with st.expander("Vider la semaine"):
-            st.button("Oui, vider tout le planning de cette semaine", on_click=etat.vider_semaine,
-                      key="plan_vider")
+        prefixe_titre = "📅 " + planning.libelle_jour(jour)
+        if jour == aujourdhui:
+            prefixe_titre += " (Aujourd'hui)"
+            
+        with st.expander(prefixe_titre):
+            repas_du_jour = planning.ids_du_jour(plan, iso)
+            st.write(f"Recettes planifiées : {len(repas_du_jour)}")
