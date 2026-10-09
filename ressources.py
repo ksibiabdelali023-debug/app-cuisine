@@ -1,7 +1,7 @@
 """Ressources mises en cache (Streamlit) : photos, prix réels, liste des recettes."""
 import streamlit as st
 
-from . import donnees, services
+import donnees, services
 
 
 @st.cache_data(ttl=3600, show_spinner=False)

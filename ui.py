@@ -1,9 +1,9 @@
 """Composants d'interface réutilisables : visuel, pastilles, carte recette, fiche détaillée."""
 import streamlit as st
 
-from . import etat
-from .calculs import cout, format_prix, ligne_ingredient, prix_minimum
-from .donnees import CAT, DEGRADES, EMOJIS, FICHES
+import etat
+from calculs import cout, format_prix, ligne_ingredient, prix_minimum
+from donnees import CAT, DEGRADES, EMOJIS, FICHES
 
 
 def visuel(r, hauteur=170):

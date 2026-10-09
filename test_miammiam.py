@@ -2,9 +2,9 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from miammiam import calculs, donnees, services, theme  # noqa: E402
+import calculs, donnees, services, theme  # noqa: E402
 
 
 def test_contrastes_wcag():
