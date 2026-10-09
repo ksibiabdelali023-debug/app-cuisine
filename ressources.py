@@ -1,7 +1,7 @@
 """Ressources mises en cache (Streamlit) : photos, prix réels, liste des recettes."""
 import streamlit as st
 
-import donnees, services
+import calculs, donnees, services
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -20,13 +20,16 @@ def charger_recettes():
     recettes, rid = [], 1
     for i in range(donnees.NB_VARIANTES):
         for nom, cat, temps, diff in donnees.BASE:
+            brut = donnees.FICHES[nom]["ingredients"]
+            if calculs.contient_interdit(nom, brut):      # sécurité : jamais de porc ni d'alcool
+                continue
             suffixe = "" if i == 0 else (" maison" if i % 2 == 0 else " du Chef") + f" (variante {i + 1})"
             recettes.append({
                 "id": rid, "nom": nom + suffixe, "base": nom, "categorie": cat,
                 "image": donnees.PHOTOS_PERSO.get(nom) or photos.get(nom, ""),
-                "temps": temps, "difficulte": diff,
+                "temps": temps, "difficulte": diff, "type": calculs.type_plat(brut),
                 "ingredients": services.ingredients_a_jour(
-                    donnees.FICHES[nom]["ingredients"], donnees.CODES_BARRES, prix_paquet),
+                    brut, donnees.CODES_BARRES, prix_paquet),
             })
             rid += 1
     return recettes

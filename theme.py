@@ -129,9 +129,26 @@ _CSS = Template("""
     .chip.dif {background: ${chip_dif_bg}; color: ${chip_dif_txt};}
     .chip.pers {background: ${chip_pers_bg}; color: ${chip_pers_txt};}
     .chip.halal {background: ${chip_halal_bg}; color: ${chip_halal_txt};}
+    .chip.typ {background: ${chip_pers_bg}; color: ${chip_pers_txt};}
     .prix {display: inline-block; background: ${prix_bg}; color: ${prix_txt}; font-weight: 800;
            padding: 6px 14px; border-radius: 20px; margin: 4px 0 10px;}
 
+    /* Filtres Catégorie / Type de plat (st.pills) */
+    [data-testid="stButtonGroup"] {gap: 8px; flex-wrap: wrap;}
+    [data-testid="stButtonGroup"] button, button[data-testid^="stBaseButton-pills"] {
+        min-height: 44px; padding: 6px 16px; border: 2px solid ${sec_bord} !important; border-radius: 22px !important;
+        background: ${carte} !important; font-weight: 700;}
+    [data-testid="stButtonGroup"] button *, button[data-testid^="stBaseButton-pills"] * {
+        color: ${texte} !important; opacity: 1 !important;}
+    [data-testid="stButtonGroup"] button[aria-checked="true"], [data-testid="stButtonGroup"] button[aria-pressed="true"],
+    button[data-testid="stBaseButton-pillsActive"] {background: ${accent} !important; border-color: ${accent} !important;}
+    [data-testid="stButtonGroup"] button[aria-checked="true"] *, [data-testid="stButtonGroup"] button[aria-pressed="true"] *,
+    button[data-testid="stBaseButton-pillsActive"] * {color: ${accent_txt} !important;}
+
+    /* Boutons des cartes recette : « Voir la recette » / « Ajouter » côte à côte */
+    div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"] {gap: 10px;}
+    div[data-testid="stVerticalBlockBorderWrapper"] .stButton > button {
+        min-height: 52px; font-size: 1.05rem; box-shadow: 0 2px 0 ${sec_bord}; white-space: normal;}
     .stButton > button, .stDownloadButton > button {min-height: 48px; width: 100%; border-radius: 14px;
            font-weight: 700; font-size: 1rem; border: 2px solid ${sec_bord}; background: ${sec_bg};}
     .stButton > button *, .stDownloadButton > button * {color: ${sec_txt} !important;}

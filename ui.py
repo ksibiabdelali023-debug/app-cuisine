@@ -22,8 +22,9 @@ def visuel(r, hauteur=170):
 
 def pastilles(r):
     cat = r["categorie"]
+    type_ = f'<span class="chip typ">{r["type"]}</span>' if r.get("type") else ""
     return ('<span class="chip halal"><span aria-hidden="true">✔ </span>Halal</span>'
-            f'<span class="chip c-{CAT[cat]}">{cat}</span>'
+            f'<span class="chip c-{CAT[cat]}">{cat}</span>' + type_ +
             f'<span class="chip tps">Temps : {r["temps"]}</span>'
             f'<span class="chip dif">Difficulté : {r["difficulte"]}</span>')
 
@@ -33,13 +34,15 @@ def annonce_html():
     return f'<div class="sr-only" role="status" aria-live="polite">{texte}</div>'
 
 
-def bouton_panier(r, cle, dialogue=False):
+def bouton_panier(r, cle, court=False):
+    """court=True : libellé compact pour les cartes (le nom du plat est dans l'infobulle)."""
     rid, nom = r["id"], r["nom"]
     if rid in st.session_state.selection:
-        st.button(f"Retirer du panier : {nom}", key=cle, on_click=etat.basculer, args=(rid, nom))
+        st.button("✖ Retirer" if court else f"Retirer du panier : {nom}", key=cle,
+                  help=f"Retirer du panier : {nom}", on_click=etat.basculer, args=(rid, nom))
     else:
-        st.button(f"Ajouter au panier : {nom}", key=cle, type="primary",
-                  on_click=etat.basculer, args=(rid, nom))
+        st.button("🛒 Ajouter" if court else f"Ajouter au panier : {nom}", key=cle, type="primary",
+                  help=f"Ajouter au panier : {nom}", on_click=etat.basculer, args=(rid, nom))
 
 
 def carte_recette(r, contexte):
@@ -56,9 +59,12 @@ def carte_recette(r, contexte):
                     unsafe_allow_html=True)
         if contexte == "panier":
             etat.champ_personnes(rid, "pn_", f"Nombre de personnes pour {nom}")
-        if st.button(f"Voir la recette : {nom}", key=f"voir_{contexte}_{rid}"):
-            ouvrir_fiche(r)
-        bouton_panier(r, f"pan_{contexte}_{rid}")
+        b1, b2 = st.columns(2)
+        with b1:
+            if st.button("📖 Voir la recette", key=f"voir_{contexte}_{rid}", help=f"Voir la recette : {nom}"):
+                ouvrir_fiche(r)
+        with b2:
+            bouton_panier(r, f"pan_{contexte}_{rid}", court=True)
 
 
 def _corps_fiche(r):

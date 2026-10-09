@@ -14,7 +14,8 @@ Recettes halal et comparateur de courses Leclerc / Lidl (Streamlit).
 
 ## Fichiers
 - `streamlit_app.py` : point d'entrée
-- `donnees.py` : recettes, ingrédients, prix estimés, photos, rayons (à modifier ici)
+- `donnees.py` : plats d'origine, catégories, filtres, rayons ; `donnees_plus.py` : recettes supplémentaires (à modifier ici)
+- Sécurité : `calculs.contient_interdit` écarte tout plat contenant du porc ou de l'alcool au chargement
 - `calculs.py`, `services.py`, `theme.py` : logique sans Streamlit (testée par `test_miammiam.py`)
 - `etat.py`, `ressources.py`, `ui.py`, `pages.py` : partie Streamlit
 - `.streamlit/config.toml` : thème clair

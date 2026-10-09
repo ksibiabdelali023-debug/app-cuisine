@@ -1,6 +1,6 @@
 """Données statiques de MiamMiam : recettes, photos, rayons. Aucune dépendance à Streamlit."""
 
-NB_VARIANTES = 85          # mettez 1 pour n'avoir que les 12 plats d'origine
+NB_VARIANTES = 35          # nombre de déclinaisons de chaque plat (mettez 1 pour n'avoir que les plats de base)
 
 # Vos propres photos : {"Salade Caprese": "https://.../photo.jpg"}
 PHOTOS_PERSO = {}
@@ -21,6 +21,9 @@ DEGRADES = {   # décoratifs uniquement : aucune information n'est portée par c
 }
 CAT = {"Entrée": "entree", "Plat": "plat", "Dessert": "dessert"}
 CATEGORIES = {"Toutes": None, "Entrées": "Entrée", "Plats": "Plat", "Desserts": "Dessert"}
+ICONES_CATEGORIES = {"Toutes": "🍽️", "Entrées": "🥗", "Plats": "🍲", "Desserts": "🍰"}
+FILTRES = {"Tous": None, "Végétarien": "Végétarien", "Poisson": "Poisson", "Viande": "Viande",
+           "Moins de 20 min": "rapide"}
 
 # Photos récupérées sur Wikipédia (langue, titre de l'article)
 ARTICLES_WIKI = {
@@ -58,11 +61,15 @@ BASE = [
 RAYONS_ORDRE = ["Fruits et légumes", "Viandes et poissons", "Crèmerie et œufs", "Épicerie"]
 REGLES_RAYONS = [
     ("Épicerie", ("concassées", "compote", "bouillon", "pâte brisée", "thon", "riz", "spaghetti", "huile",
-                  "curry", "farine", "sucre", "chocolat", "mayonnaise", "moutarde", "boudoirs", "café", "cacao")),
-    ("Viandes et poissons", ("poulet", "bœuf", "saumon", "crevettes")),
-    ("Crèmerie et œufs", ("mozzarella", "crème", "beurre", "lait", "emmental", "mascarpone", "œufs")),
+                  "curry", "farine", "sucre", "chocolat", "mayonnaise", "moutarde", "boudoirs", "café", "cacao",
+                  "pois chiches", "boulgour", "semoule", "lentilles", "crème de sésame", "cumin", "ras el hanout",
+                  "paprika", "curcuma", "olives", "feuilles de brick", "haricots rouges", "lait de coco",
+                  "agar-agar", "vanille", "pépites", "lasagne", "citron confit", "cassonade")),
+    ("Viandes et poissons", ("poulet", "bœuf", "saumon", "crevettes", "cabillaud", "gambas")),
+    ("Crèmerie et œufs", ("mozzarella", "crème", "beurre", "lait", "emmental", "mascarpone", "œufs", "feta")),
     ("Fruits et légumes", ("tomates", "avocats", "potimarron", "oignon", "citron", "carotte", "pommes",
-                           "ail", "basilic", "aneth", "ciboulette", "salade")),
+                           "ail", "basilic", "aneth", "ciboulette", "salade", "persil", "menthe", "thym", "concombre",
+                           "courgettes", "champignons", "poivron", "cerises", "fruits rouges", "oignons")),
 ]
 
 # =====================================================================
@@ -242,3 +249,11 @@ FICHES = {
         "astuce": "Préparez-le la veille : le goût n'en sera que meilleur.",
         "halal": "Pas de marsala ni d'amaretto : café seul. Boudoirs sans gélatine ni alcool."},
 }
+
+# Recettes supplémentaires (voir donnees_plus.py) : fusionnées avec les plats d'origine
+from donnees_plus import BASE_PLUS, EMOJIS_PLUS, FICHES_PLUS, WIKI_PLUS  # noqa: E402
+
+BASE = BASE + BASE_PLUS
+EMOJIS.update(EMOJIS_PLUS)
+FICHES.update(FICHES_PLUS)
+ARTICLES_WIKI.update(WIKI_PLUS)

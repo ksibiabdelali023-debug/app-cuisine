@@ -4,25 +4,37 @@ import re
 import streamlit as st
 
 import etat, ressources
-from calculs import (agreger, format_prix, grouper_par_rayon, ligne_ingredient, meilleur_mixte,
+from calculs import (agreger, correspond_filtre, format_prix, grouper_par_rayon, ligne_ingredient, meilleur_mixte,
                       meilleure_enseigne, minutes, cout, prix_minimum, texte_liste, totaux)
-from donnees import CATEGORIES, CODES_BARRES
+from donnees import CATEGORIES, CODES_BARRES, FILTRES, ICONES_CATEGORIES
 from ui import carte_recette
+
+
+def _pills(libelle, options, defaut, cle, format_func=str):
+    """Boutons-pastilles faciles à toucher sur mobile ; revient à la valeur par défaut si on désélectionne."""
+    choix = st.pills(libelle, options, selection_mode="single", default=defaut, key=cle,
+                     format_func=format_func)
+    return choix or defaut
 
 
 def page_recettes(recettes):
     recherche = st.text_input("Rechercher une recette", placeholder="Poulet, chocolat, salade…")
-    choix = st.radio("Catégorie", list(CATEGORIES), horizontal=True)
+    trouvees = [r for r in recettes if recherche.lower() in r["nom"].lower()]
+    compteurs = {lib: sum(1 for r in trouvees if cat is None or r["categorie"] == cat)
+                 for lib, cat in CATEGORIES.items()}
+    choix = _pills("Catégorie", list(CATEGORIES), "Toutes", "pills_categorie",
+                   lambda k: f"{ICONES_CATEGORIES[k]} {k} ({compteurs[k]})")
+    filtre = _pills("Type de plat", list(FILTRES), "Tous", "pills_type")
     tri = st.selectbox("Trier par", ["Ordre habituel", "Prix croissant", "Plus rapides"])
 
-    signature = (recherche, choix, tri)
+    signature = (recherche, choix, filtre, tri)
     if signature != st.session_state.filtre_precedent:
         st.session_state.nb_affiche = 8
         st.session_state.filtre_precedent = signature
 
     cat = CATEGORIES[choix]
-    resultats = [r for r in recettes
-                 if (cat is None or r["categorie"] == cat) and recherche.lower() in r["nom"].lower()]
+    resultats = [r for r in trouvees
+                 if (cat is None or r["categorie"] == cat) and correspond_filtre(r, filtre)]
     if tri == "Prix croissant":
         resultats.sort(key=prix_minimum)
     elif tri == "Plus rapides":

@@ -98,3 +98,43 @@ def texte_liste(groupes):
         sortie.append("")
     sortie.append(f"Total : {format_prix(total)}")
     return "\n".join(sortie)
+
+
+# ---------------------------------------------------------------------
+# Sécurité halal : aucune recette contenant du porc (ni alcool) n'est chargée.
+# ---------------------------------------------------------------------
+INTERDITS = ("porc", "cochon", "lard", "lardons", "jambon", "bacon", "saindoux", "chorizo", "saucisson",
+             "pancetta", "guanciale", "rillettes", "boudin", "mortadelle", "coppa", "prosciutto", "salami",
+             "pepperoni", "gélatine", "vin", "rhum", "bière", "calvados", "marsala", "amaretto", "liqueur",
+             "cognac", "kirsch", "whisky", "vodka", "porto", "mirin", "saké")
+
+
+def contient_interdit(nom, ingredients):
+    """True si le nom ou un ingrédient contient du porc (ou un dérivé) ou de l'alcool."""
+    texte = (nom + " " + " ".join(i[2] for i in ingredients)).lower()
+    return any(re.search(rf"\b{re.escape(m)}\b", texte) for m in INTERDITS)
+
+
+# ---------------------------------------------------------------------
+# Type de plat (calculé depuis les ingrédients) et filtres
+# ---------------------------------------------------------------------
+MOTS_POISSON = ("saumon", "thon", "crevettes", "gambas", "cabillaud")
+MOTS_VIANDE = ("poulet", "bœuf", "agneau", "steak")
+
+
+def type_plat(ingredients):
+    """« Poisson », « Viande » ou « Végétarien » selon les ingrédients."""
+    noms = " ".join(i[2] for i in ingredients).lower()
+    if any(re.search(rf"\b{m}\b", noms) for m in MOTS_POISSON):
+        return "Poisson"
+    if any(re.search(rf"\b{m}\b", noms) for m in MOTS_VIANDE):
+        return "Viande"
+    return "Végétarien"
+
+
+def correspond_filtre(recette, filtre):
+    if filtre in (None, "Tous"):
+        return True
+    if filtre == "Moins de 20 min":
+        return minutes(recette["temps"]) <= 20
+    return recette.get("type") == filtre
