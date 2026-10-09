@@ -34,9 +34,12 @@ else:
     st.markdown('<div class="resume">Panier vide : ajoutez des recettes pour comparer les prix.</div>',
                 unsafe_allow_html=True)
 
-onglet_recettes, onglet_panier, onglet_courses = st.tabs(["Recettes", f"Panier ({n})", "Courses"])
+onglet_recettes, onglet_planning, onglet_panier, onglet_courses = st.tabs(
+    ["Recettes", "Planning", f"Panier ({n})", "Courses"])
 with onglet_recettes:
     pages.page_recettes(recettes)
+with onglet_planning:
+    pages.page_planning(recettes, par_id)
 with onglet_panier:
     pages.page_panier(par_id)
 with onglet_courses:

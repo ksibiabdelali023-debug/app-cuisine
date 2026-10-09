@@ -4,7 +4,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import calculs, donnees, services, theme  # noqa: E402
+import calculs, donnees, planning, services, theme  # noqa: E402
+from datetime import date  # noqa: E402
 
 
 def test_contrastes_wcag():
@@ -130,6 +131,26 @@ def test_nouveaux_ingredients_ont_le_bon_rayon():
                "cuisses de poulet halal": "Viandes et poissons", "jaunes d'œufs": "Crèmerie et œufs"}
     for nom, rayon in attendu.items():
         assert calculs.rayon_de(nom) == rayon, nom
+
+
+def test_planning():
+    plan = {}
+    assert planning.lundi(date(2026, 10, 9)) == date(2026, 10, 5)          # vendredi -> lundi
+    assert planning.libelle_jour(date(2026, 10, 9)) == "Vendredi 9 octobre"
+    assert len(planning.semaine(date(2026, 10, 5))) == 7
+    assert planning.ajouter(plan, "2026-10-05", "Dîner", 1)
+    assert not planning.ajouter(plan, "2026-10-05", "Dîner", 1)            # pas de doublon dans un repas
+    assert not planning.ajouter(plan, "2026-10-05", "Petit-déjeuner", 1)   # repas inconnu
+    assert planning.ajouter(plan, "2026-10-06", "Déjeuner", 1)
+    assert planning.ajouter(plan, "2026-10-06", "Dîner", 2)
+    assert planning.ids_semaine(plan, date(2026, 10, 5)) == [1, 2]
+    assert planning.ids_semaine(plan, date(2026, 10, 12)) == []
+    txt = planning.texte_planning(plan, {1: {"nom": "A"}, 2: {"nom": "B"}}, date(2026, 10, 5))
+    assert "LUNDI 5 OCTOBRE" in txt and "Dîner : A" in txt and "Déjeuner : -" in txt
+    planning.retirer(plan, "2026-10-05", "Dîner", 1)
+    assert "2026-10-05" not in plan                                         # jour vide nettoyé
+    planning.vider_semaine(plan, date(2026, 10, 5))
+    assert plan == {}
 
 
 if __name__ == "__main__":

@@ -88,6 +88,11 @@ _CSS = Template("""
         background: ${carte} !important; border-color: ${sec_bord} !important;}
     [data-testid="stCheckbox"] label, [data-testid="stCheckbox"] label *,
     [data-testid="stToggle"] label, [data-testid="stToggle"] label * {color: ${texte} !important;}
+    [data-baseweb="calendar"], [data-baseweb="datepicker"] {background: ${carte} !important;}
+    [data-baseweb="calendar"] *, [data-baseweb="datepicker"] * {color: ${texte} !important;}
+    [data-baseweb="calendar"] [aria-selected="true"], [data-baseweb="calendar"] [aria-selected="true"] * {
+        background: ${accent} !important; color: ${accent_txt} !important;}
+    .stTabs [data-baseweb="tab"] {padding: 0 6px;}
     [data-testid="stSidebar"], [data-testid="stSidebar"] * {color: ${texte} !important;}
     [data-testid="stSidebar"] {background: ${carte} !important;}
 

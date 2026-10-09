@@ -1,7 +1,9 @@
 """Composants d'interface réutilisables : visuel, pastilles, carte recette, fiche détaillée."""
+from datetime import date
+
 import streamlit as st
 
-import etat
+import etat, planning
 from calculs import cout, format_prix, ligne_ingredient, prix_minimum
 from donnees import CAT, DEGRADES, EMOJIS, FICHES
 
@@ -92,6 +94,11 @@ def _corps_fiche(r):
                 f"Lidl {format_prix(cout(r['ingredients'], 'lidl', c))}.")
 
     bouton_panier(r, f"dlg_{rid}")
+    st.subheader("Planifier ce plat")
+    st.date_input("Jour", value=date.today(), format="DD/MM/YYYY", key=f"plan_jour_{rid}")
+    st.selectbox("Repas", planning.REPAS, key=f"plan_repas_{rid}")
+    st.button("📅 Ajouter au planning", key=f"plan_ajout_{rid}", on_click=etat.planifier_depuis_fiche,
+              args=(rid, r["nom"]))
     if st.button("Fermer la fiche et actualiser la page", key=f"fer_{rid}"):
         st.rerun()
     st.markdown(annonce_html(), unsafe_allow_html=True)

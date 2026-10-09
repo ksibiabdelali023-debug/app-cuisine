@@ -1,9 +1,10 @@
 """Les trois vues de l'application : Recettes, Panier, Courses."""
 import re
+from datetime import date
 
 import streamlit as st
 
-import etat, ressources
+import etat, planning, ressources
 from calculs import (agreger, correspond_filtre, format_prix, grouper_par_rayon, ligne_ingredient, meilleur_mixte,
                       meilleure_enseigne, minutes, cout, prix_minimum, texte_liste, totaux)
 from donnees import CATEGORIES, CODES_BARRES, FILTRES, ICONES_CATEGORIES
@@ -138,3 +139,67 @@ def page_courses(par_id):
             for q, u, n, p_lec, p_lid in r["ingredients"]:
                 st.write(f"{ligne_ingredient(q * c, u, n)} : Leclerc {format_prix(p_lec * c)}, "
                          f"Lidl {format_prix(p_lid * c)}")
+
+
+def page_planning(recettes, par_id):
+    st.header("Planning des repas")
+    debut = st.session_state.semaine_debut
+    jours = planning.semaine(debut)
+    plan = st.session_state.planning
+
+    n1, n2, n3 = st.columns(3)
+    n1.button("◀ Précédente", on_click=etat.changer_semaine, args=(-7,), key="sem_prec")
+    n2.button("Aujourd'hui", on_click=etat.changer_semaine, args=(0,), key="sem_auj")
+    n3.button("Suivante ▶", on_click=etat.changer_semaine, args=(7,), key="sem_suiv")
+    st.markdown(f'<h3 class="titre">{planning.libelle_jour(jours[0])} au {planning.libelle_jour(jours[-1])}</h3>',
+                unsafe_allow_html=True)
+
+    ids_sem = planning.ids_semaine(plan, debut)
+    if ids_sem:
+        lec, lid = totaux([par_id[i] for i in ids_sem], etat.coef)
+        st.caption(f"{len(ids_sem)} recette(s) prévue(s) cette semaine. Courses estimées : "
+                   f"Leclerc {format_prix(lec)} · Lidl {format_prix(lid)}.")
+        st.button("🛒 Envoyer les recettes de la semaine au panier", type="primary",
+                  on_click=etat.planning_vers_panier, key="plan_vers_panier")
+    else:
+        st.info("Aucune recette prévue cette semaine. Ouvrez un jour ci-dessous pour en ajouter.")
+
+    # Recettes proposées : les plats de base + celles déjà dans le panier
+    options = {r["id"]: r for r in recettes if r["nom"] == r["base"]}
+    for rid in st.session_state.selection:
+        options.setdefault(rid, par_id[rid])
+    ids = list(options)
+
+    aujourdhui = date.today()
+    for jour in jours:
+        iso = jour.isoformat()
+        nb = len(planning.ids_du_jour(plan, iso))
+        titre = planning.libelle_jour(jour) + (" · aujourd'hui" if jour == aujourdhui else "")
+        titre += f" · {nb} recette{'s' if nb > 1 else ''}" if nb else ""
+        with st.expander(titre, expanded=(jour == aujourdhui)):
+            for repas in planning.REPAS:
+                st.markdown(f'<h3 class="titre">{planning.ICONES_REPAS[repas]} {repas}</h3>',
+                            unsafe_allow_html=True)
+                for rid in plan.get(iso, {}).get(repas, []):
+                    r = par_id[rid]
+                    c_nom, c_btn = st.columns([4, 1])
+                    c_nom.markdown(f"**{r['nom']}**  \n{r['categorie']} · {r['temps']}")
+                    c_btn.button("✖", key=f"rm_{iso}_{repas}_{rid}", help=f"Retirer du planning : {r['nom']}",
+                                 on_click=etat.deplanifier, args=(iso, repas, rid, r["nom"]))
+                cle = f"ajout_{iso}_{repas}"
+                st.selectbox(f"Ajouter au {repas.lower()}", ids, index=None, key=cle,
+                             format_func=lambda i: f"{options[i]['nom']} ({options[i]['categorie']})",
+                             placeholder="Choisir une recette…")
+                st.button(f"➕ Ajouter au {repas.lower()}", key=f"btn_{cle}",
+                          on_click=etat.planifier_depuis_liste, args=(iso, repas, cle, par_id))
+            jour_ids = planning.ids_du_jour(plan, iso)
+            if jour_ids:
+                lec, lid = totaux([par_id[i] for i in jour_ids], etat.coef)
+                st.caption(f"Courses du jour : Leclerc {format_prix(lec)} · Lidl {format_prix(lid)}")
+
+    if ids_sem:
+        st.download_button("Télécharger le planning (texte)", planning.texte_planning(plan, par_id, debut),
+                           file_name="planning_repas.txt", mime="text/plain")
+        with st.expander("Vider la semaine"):
+            st.button("Oui, vider tout le planning de cette semaine", on_click=etat.vider_semaine,
+                      key="plan_vider")
