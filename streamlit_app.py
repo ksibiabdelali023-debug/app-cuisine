@@ -5,6 +5,7 @@ import streamlit as st
 import etat
 import pages
 import ressources
+
 from donnees import BASE
 
 # 1. Configuration de la page Streamlit (Style Application Mobile)
