@@ -1,6 +1,5 @@
 import streamlit as st
 import etat
-import pages
 import ressources
 from donnees import BASE
 
@@ -60,14 +59,18 @@ o_recettes, o_planning, o_panier, o_courses = st.tabs([
     "🥗 Recettes", "📅 Planning", label_panier, "📝 Liste de Courses"
 ])
 
+# Importation dynamique sécurisée pour contourner le problème d'indentation du haut de fichier
+import importlib
+p = importlib.import_module("pages")
+
 with o_recettes:
-    pages.page_recettes(recettes_structurees)
+    p.page_recettes(recettes_structurees)
 
 with o_planning:
-    pages.page_planning(recettes_structurees, recettes_par_id)
+    p.page_planning(recettes_structurees, recettes_par_id)
 
 with o_panier:
-    pages.page_panier(recettes_par_id)
+    p.page_panier(recettes_par_id)
 
 with o_courses:
-    pages.page_courses(recettes_par_id)
+    p.page_courses(recettes_par_id)
