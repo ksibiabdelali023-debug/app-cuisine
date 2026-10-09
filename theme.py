@@ -76,6 +76,21 @@ _CSS = Template("""
     input::placeholder, textarea::placeholder {color: ${texte_doux} !important; opacity: 1 !important;}
     input, textarea, [data-baseweb="select"] > div {border: 2px solid ${sec_bord} !important; border-radius: 12px !important;}
 
+    /* Force le rendu clair même si le téléphone est en mode sombre */
+    :root, .stApp {color-scheme: light !important;}
+    input, textarea, [data-baseweb="input"], [data-baseweb="base-input"], [data-baseweb="select"] > div {
+        background: ${carte} !important; color: ${texte} !important; -webkit-text-fill-color: ${texte} !important;}
+    [data-baseweb="select"] *, [data-baseweb="select"] svg {color: ${texte} !important; fill: ${texte} !important;}
+    [data-baseweb="popover"] ul, [data-baseweb="popover"] li, [data-baseweb="menu"] {
+        background: ${carte} !important; color: ${texte} !important;}
+    [data-testid="stRadio"] label, [data-testid="stRadio"] label * {color: ${texte} !important; opacity: 1 !important;}
+    [data-testid="stRadio"] [role="radio"] > div:first-child, [data-testid="stRadio"] label > div:first-child {
+        background: ${carte} !important; border-color: ${sec_bord} !important;}
+    [data-testid="stCheckbox"] label, [data-testid="stCheckbox"] label *,
+    [data-testid="stToggle"] label, [data-testid="stToggle"] label * {color: ${texte} !important;}
+    [data-testid="stSidebar"], [data-testid="stSidebar"] * {color: ${texte} !important;}
+    [data-testid="stSidebar"] {background: ${carte} !important;}
+
     .sr-only {position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap;}
 
     .hero {background: linear-gradient(120deg, ${hero_bg1}, ${hero_bg2}); border: 3px solid ${contour};
