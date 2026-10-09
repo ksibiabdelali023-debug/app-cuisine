@@ -154,7 +154,7 @@ def page_courses(par_id):
     mixte = meilleur_mixte(agg)
     gain = min(tot_lec, tot_lid) - mixte
     if gain > 0.005:
-        st.success(f"💡 Optimisation : En achetant chaque ingrédient individuellement là où il est le moins cher, "
+        st.success(f"💡 **Optimisation** : En achetant chaque ingrédient individuellement là où il est le moins cher, "
                    f"votre total descend à **{format_prix(mixte)}** (soit **{format_prix(gain)}** d'économie supplémentaire).")
 
     st.caption(f"Prix : {len(CODES_BARRES)} ingrédient(s) liés à Open Prices (relevés réels mis à jour "
@@ -176,7 +176,7 @@ def page_courses(par_id):
             cle = "coche_" + re.sub(r"\W+", "_", f"{nom}_{unite}")
             cles.append(cle)
             mag = "Leclerc" if p_lec <= p_lid else "Lidl"
-            st.checkbox(f"{ligne_ingredient(q, unite, nom)} (Leclerc: {format_prix(p_lec)} | Lidl: {format_prix(p_lid)}) • Réduit chez : {mag}", key=cle)
+            st.checkbox(f"{ligne_ingredient(q, unite, nom)} (Leclerc: {format_prix(p_lec)} | Lidl: {format_prix(p_lid)}) • Moins cher chez : {mag}", key=cle)
     
     coches = sum(1 for k in cles if st.session_state.get(k))
     st.progress(coches / len(cles) if cles else 0.0, text=f"{coches} sur {len(cles)} articles cochés")
@@ -188,7 +188,6 @@ def page_courses(par_id):
     for r in sel:
         rid = r["id"]
         with st.expander(f"{r['nom']} ({r.get('base', '')}) : {etat.personnes(rid)} personnes"):
-            # Permettre l'ajustement unitaire du nombre de personnes
             st.number_input("Ajuster les parts", 1, 12, value=int(etat.personnes(rid)), key=f"c_{rid}")
             c = etat.coef(rid)
             for q, u, n, p_lec, p_lid in r["ingredients"]:
@@ -233,3 +232,5 @@ def page_planning(recettes, par_id):
         with st.expander(prefixe_titre):
             repas_du_jour = planning.ids_du_jour(plan, iso)
             st.write(f"Recettes planifiées : {len(repas_du_jour)}")
+            
+            for rid in repas_du_jour:
