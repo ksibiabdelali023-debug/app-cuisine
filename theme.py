@@ -24,6 +24,8 @@ NORMAL = {
     "lidl_bg": "#FDE047", "lidl_txt": "#422006",
     "gagnant_bg": "#14532D", "gagnant_txt": "#FFFFFF",
     "astuce_bg": "#FFF3C4", "halalbox_bg": "#E8F7EC",
+    "ov_bg": "#111827", "ov_txt": "#FFFFFF",      # pastilles posées sur les photos
+    "epais": "1px",                               # épaisseur des contours (3px en contraste élevé)
 }
 
 ELEVE = {k: "#FFFFFF" for k in NORMAL}
@@ -32,7 +34,7 @@ ELEVE.update({
     "accent": "#000000", "prim_bg": "#000000", "sec_txt": "#000000", "sec_bord": "#000000",
     "hero_bg1": "#000000", "hero_bg2": "#000000", "chip_bord": "#000000",
     "prix_bg": "#000000", "leclerc_bg": "#000000", "gagnant_bg": "#000000",
-    "lidl_txt": "#000000",
+    "lidl_txt": "#000000", "ov_bg": "#000000", "epais": "3px",
 })
 for _nom in ("entree", "plat", "dessert", "tps", "dif", "pers", "halal"):
     ELEVE[f"chip_{_nom}_txt"] = "#000000"
@@ -41,7 +43,7 @@ PAIRES = [("fond_page", "texte"), ("carte", "texte"), ("carte", "texte_doux"), (
           ("accent", "accent_txt"), ("prim_bg", "prim_txt"), ("sec_bg", "sec_txt"),
           ("hero_bg1", "hero_txt"), ("hero_bg2", "hero_txt"),
           ("prix_bg", "prix_txt"), ("leclerc_bg", "leclerc_txt"), ("lidl_bg", "lidl_txt"),
-          ("gagnant_bg", "gagnant_txt"), ("astuce_bg", "texte"), ("halalbox_bg", "texte")] + [
+          ("gagnant_bg", "gagnant_txt"), ("ov_bg", "ov_txt"), ("astuce_bg", "texte"), ("halalbox_bg", "texte")] + [
     (f"chip_{n}_bg", f"chip_{n}_txt") for n in ("entree", "plat", "dessert", "tps", "dif", "pers", "halal")]
 
 
@@ -66,20 +68,38 @@ _CSS = Template("""
 <style>
     html {font-size: ${pct}%;}
     #MainMenu, footer, header {visibility: hidden;}
+    :root, .stApp {color-scheme: light !important;}
     .stApp {background: ${fond_page};}
-    .block-container {padding-top: 1rem; padding-bottom: 5rem; max-width: 760px;}
+    .block-container {padding: 0.75rem 0.9rem 7rem; max-width: 760px;}
     *:focus-visible {outline: 3px solid ${focus} !important; outline-offset: 2px !important;}
+    .sr-only {position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap;}
 
-    /* Textes Streamlit à faible contraste par défaut */
+    /* ---------- Textes natifs : toujours lisibles, même si le téléphone est en mode sombre ---------- */
+    [data-testid="stMarkdownContainer"] > p, [data-testid="stMarkdownContainer"] > ul li,
+    [data-testid="stMarkdownContainer"] > ol li, [data-testid="stMarkdownContainer"] > p strong {color: ${texte};}
+    [data-testid="stHeading"], [data-testid="stHeading"] * {color: ${texte} !important;}
     [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] * {color: ${texte_doux} !important; opacity: 1 !important;}
     [data-testid="stWidgetLabel"], [data-testid="stWidgetLabel"] * {color: ${texte} !important;}
     input::placeholder, textarea::placeholder {color: ${texte_doux} !important; opacity: 1 !important;}
-    input, textarea, [data-baseweb="select"] > div {border: 2px solid ${sec_bord} !important; border-radius: 12px !important;}
+    [data-testid="stAlert"] {background: ${astuce_bg} !important; border: ${epais} solid ${contour}; border-radius: 16px;}
+    [data-testid="stAlert"] * {color: ${texte} !important;}
+    [data-testid="stExpander"] {background: ${carte}; border: ${epais} solid ${contour}; border-radius: 16px;}
+    [data-testid="stExpander"] details, [data-testid="stExpander"] summary {background: ${carte} !important; border-radius: 16px;}
+    [data-testid="stExpander"] summary, [data-testid="stExpander"] summary * {color: ${texte} !important; font-weight: 700;}
+    [data-testid="stExpander"] svg {fill: ${texte} !important; color: ${texte} !important;}
+    div[role="dialog"], [data-testid="stDialog"] > div > div {background: ${fond_page} !important;}
+    div[role="dialog"] svg {fill: ${texte} !important;}
 
-    /* Force le rendu clair même si le téléphone est en mode sombre */
-    :root, .stApp {color-scheme: light !important;}
-    input, textarea, [data-baseweb="input"], [data-baseweb="base-input"], [data-baseweb="select"] > div {
-        background: ${carte} !important; color: ${texte} !important; -webkit-text-fill-color: ${texte} !important;}
+    /* ---------- Champs de saisie, listes, cases ---------- */
+    [data-testid="stTextInputRootElement"], [data-testid="stNumberInputContainer"], [data-testid="stTextAreaRootElement"] {
+        background: transparent !important; border: none !important; box-shadow: none !important;}
+    [data-baseweb="input"], [data-baseweb="textarea"], [data-baseweb="select"] > div {
+        background: ${carte} !important; border: 2px solid ${sec_bord} !important; border-radius: 14px !important;
+        min-height: 48px;}
+    [data-baseweb="base-input"] {background: transparent !important; border: none !important;}
+    input, textarea {background: transparent !important; border: none !important; color: ${texte} !important;
+        -webkit-text-fill-color: ${texte} !important;}
+    [data-testid="stNumberInputContainer"] button {background: ${carte} !important; color: ${texte} !important;}
     [data-baseweb="select"] *, [data-baseweb="select"] svg {color: ${texte} !important; fill: ${texte} !important;}
     [data-baseweb="popover"] ul, [data-baseweb="popover"] li, [data-baseweb="menu"] {
         background: ${carte} !important; color: ${texte} !important;}
@@ -92,41 +112,61 @@ _CSS = Template("""
     [data-baseweb="calendar"] *, [data-baseweb="datepicker"] * {color: ${texte} !important;}
     [data-baseweb="calendar"] [aria-selected="true"], [data-baseweb="calendar"] [aria-selected="true"] * {
         background: ${accent} !important; color: ${accent_txt} !important;}
-    .stTabs [data-baseweb="tab"] {padding: 0 6px;}
     [data-testid="stSidebar"], [data-testid="stSidebar"] * {color: ${texte} !important;}
     [data-testid="stSidebar"] {background: ${carte} !important;}
 
-    .sr-only {position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap;}
-
-    .hero {background: linear-gradient(120deg, ${hero_bg1}, ${hero_bg2}); border: 3px solid ${contour};
-           border-radius: 22px; padding: 24px 20px; margin-bottom: 14px;}
+    /* ---------- En-tête compact et bandeau panier ---------- */
+    .hero {background: linear-gradient(120deg, ${hero_bg1}, ${hero_bg2}); border: ${epais} solid ${contour};
+           border-radius: 20px; padding: 14px 16px; margin-bottom: 10px;}
+    .hero .ligne {display: flex; align-items: center; gap: 12px;}
+    .hero .logo {font-size: 2.1rem; line-height: 1;}
     .hero h1, .hero p {color: ${hero_txt} !important; margin: 0; padding: 0;}
-    .hero h1 {font-size: 2rem;}
-    .hero p {margin-top: 6px; font-size: 1.05rem;}
-    .resume {background: ${accent}; color: ${accent_txt}; border-radius: 14px; padding: 12px 16px;
-             font-weight: 700; margin-bottom: 14px;}
+    .hero h1 {font-size: 1.5rem; font-weight: 800; line-height: 1.15;}
+    .hero p {margin-top: 2px; font-size: 0.9rem;}
+    .resume {background: ${accent}; color: ${accent_txt}; border-radius: 14px; padding: 9px 14px;
+             font-weight: 700; font-size: 0.92rem; margin-bottom: 10px;}
 
-    .stTabs [data-baseweb="tab-list"] {gap: 6px; background: ${carte}; padding: 6px; border-radius: 18px;
-           border: 2px solid ${contour};}
-    .stTabs [data-baseweb="tab"] {flex: 1; justify-content: center; min-height: 48px; border-radius: 12px;
-           font-weight: 700; font-size: 1rem; background: transparent;}
-    .stTabs [data-baseweb="tab"] * {color: ${texte} !important;}
+    /* ---------- Navigation en bas de l'écran (comme une vraie appli) ---------- */
+    .stTabs [data-baseweb="tab-list"] {position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000; margin: 0;
+           gap: 4px; background: ${carte}; border: none; border-top: ${epais} solid ${contour}; border-radius: 0;
+           padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -6px 18px rgba(0,0,0,0.08);}
+    .stTabs [data-baseweb="tab"] {flex: 1; justify-content: center; min-height: 48px; padding: 0 2px;
+           border-radius: 14px; font-weight: 700; font-size: 0.78rem; background: transparent; white-space: nowrap;}
+    .stTabs [data-baseweb="tab"], .stTabs [data-baseweb="tab"] * {color: ${texte} !important; opacity: 1 !important;}
     .stTabs [aria-selected="true"] {background: ${accent} !important;}
     .stTabs [aria-selected="true"] * {color: ${accent_txt} !important;}
     .stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"] {display: none;}
 
-    div[data-testid="stVerticalBlockBorderWrapper"] {background: ${carte}; border: 2px solid ${contour};
-           border-radius: 18px;}
+    /* ---------- Filtres horizontaux défilables (Catégorie / Type de plat) ---------- */
+    [data-testid="stButtonGroup"] {gap: 8px; flex-wrap: nowrap !important; overflow-x: auto; padding: 2px 2px 8px;
+           -webkit-overflow-scrolling: touch; scrollbar-width: none;}
+    [data-testid="stButtonGroup"]::-webkit-scrollbar {display: none;}
+    [data-testid="stButtonGroup"] button, button[data-testid^="stBaseButton-pills"] {
+        flex: 0 0 auto; white-space: nowrap; min-height: 42px; padding: 4px 16px; font-weight: 700;
+        border: 2px solid ${sec_bord} !important; border-radius: 22px !important; background: ${carte} !important;}
+    [data-testid="stButtonGroup"] button *, button[data-testid^="stBaseButton-pills"] * {
+        color: ${texte} !important; opacity: 1 !important;}
+    [data-testid="stButtonGroup"] button[aria-checked="true"], [data-testid="stButtonGroup"] button[aria-pressed="true"],
+    button[data-testid="stBaseButton-pillsActive"] {background: ${accent} !important; border-color: ${accent} !important;}
+    [data-testid="stButtonGroup"] button[aria-checked="true"] *, [data-testid="stButtonGroup"] button[aria-pressed="true"] *,
+    button[data-testid="stBaseButton-pillsActive"] * {color: ${accent_txt} !important;}
 
-    .visuel {position: relative; overflow: hidden; border-radius: 14px; display: flex;
-             align-items: center; justify-content: center; border: 2px solid ${contour};}
+    /* ---------- Cartes recette ---------- */
+    div[data-testid="stVerticalBlockBorderWrapper"] {background: ${carte}; border: ${epais} solid ${contour};
+           border-radius: 22px; padding: 6px; box-shadow: 0 8px 22px rgba(124,45,18,0.10); overflow: hidden;}
+    .visuel {position: relative; overflow: hidden; border-radius: 17px; display: flex;
+             align-items: center; justify-content: center;}
     .visuel .emo {font-size: 56px;}
     .visuel .photo {position: absolute; inset: 0; background-size: cover; background-position: center;}
+    .ov {position: absolute; z-index: 2; background: ${ov_bg}; color: ${ov_txt}; font-weight: 700; font-size: 0.82rem;
+         padding: 4px 11px; border-radius: 14px; line-height: 1.3;}
+    .ov.hg {left: 10px; top: 10px;} .ov.bg {left: 10px; bottom: 10px;} .ov.bd {right: 10px; bottom: 10px;}
+    .titre {font-weight: 800; font-size: 1.12rem; margin: 10px 4px 2px; line-height: 1.3; color: ${texte} !important;}
+    .meta {color: ${texte_doux}; font-size: 0.9rem; margin: 0 4px 6px;}
+    .puces {margin: 0 4px;}
 
-    .titre {font-weight: 800; font-size: 1.2rem; margin: 12px 0 8px 0; line-height: 1.3; color: ${texte} !important;}
-
-    .chip {display: inline-block; border: 2px solid ${chip_bord}; border-radius: 20px; padding: 4px 12px;
-           font-size: 0.9rem; font-weight: 700; margin: 0 6px 6px 0;}
+    .chip {display: inline-block; border: ${epais} solid ${chip_bord}; border-radius: 20px; padding: 3px 11px;
+           font-size: 0.82rem; font-weight: 700; margin: 0 6px 6px 0;}
     .chip.c-entree {background: ${chip_entree_bg}; color: ${chip_entree_txt};}
     .chip.c-plat {background: ${chip_plat_bg}; color: ${chip_plat_txt};}
     .chip.c-dessert {background: ${chip_dessert_bg}; color: ${chip_dessert_txt};}
@@ -135,44 +175,42 @@ _CSS = Template("""
     .chip.pers {background: ${chip_pers_bg}; color: ${chip_pers_txt};}
     .chip.halal {background: ${chip_halal_bg}; color: ${chip_halal_txt};}
     .chip.typ {background: ${chip_pers_bg}; color: ${chip_pers_txt};}
-    .prix {display: inline-block; background: ${prix_bg}; color: ${prix_txt}; font-weight: 800;
-           padding: 6px 14px; border-radius: 20px; margin: 4px 0 10px;}
+    .prix {display: inline-block; background: ${prix_bg}; color: ${prix_txt} !important; font-weight: 800; font-size: 0.92rem;
+           padding: 5px 13px; border-radius: 20px; margin: 4px 4px 8px;}
 
-    /* Filtres Catégorie / Type de plat (st.pills) */
-    [data-testid="stButtonGroup"] {gap: 8px; flex-wrap: wrap;}
-    [data-testid="stButtonGroup"] button, button[data-testid^="stBaseButton-pills"] {
-        min-height: 44px; padding: 6px 16px; border: 2px solid ${sec_bord} !important; border-radius: 22px !important;
-        background: ${carte} !important; font-weight: 700;}
-    [data-testid="stButtonGroup"] button *, button[data-testid^="stBaseButton-pills"] * {
-        color: ${texte} !important; opacity: 1 !important;}
-    [data-testid="stButtonGroup"] button[aria-checked="true"], [data-testid="stButtonGroup"] button[aria-pressed="true"],
-    button[data-testid="stBaseButton-pillsActive"] {background: ${accent} !important; border-color: ${accent} !important;}
-    [data-testid="stButtonGroup"] button[aria-checked="true"] *, [data-testid="stButtonGroup"] button[aria-pressed="true"] *,
-    button[data-testid="stBaseButton-pillsActive"] * {color: ${accent_txt} !important;}
-
-    /* Boutons des cartes recette : « Voir la recette » / « Ajouter » côte à côte */
-    div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"] {gap: 10px;}
-    div[data-testid="stVerticalBlockBorderWrapper"] .stButton button {
-        min-height: 52px; font-size: 1.05rem; box-shadow: 0 2px 0 ${sec_bord}; white-space: normal;}
-    /* st.button(help=...) enveloppe le bouton dans un bloc d'infobulle : on cible donc « button » sans « > » */
+    /* ---------- Boutons ---------- */
     .stButton, .stDownloadButton, [data-testid="stTooltipHoverTarget"] {width: 100%;}
     .stButton button, .stDownloadButton button {min-height: 48px; width: 100%; border-radius: 14px;
            font-weight: 700; font-size: 1rem; border: 2px solid ${sec_bord}; background: ${sec_bg};}
     .stButton button *, .stDownloadButton button * {color: ${sec_txt} !important;}
     .stButton button[kind="primary"], button[data-testid="stBaseButton-primary"] {background: ${prim_bg}; border-color: ${prim_bg};}
     .stButton button[kind="primary"] *, button[data-testid="stBaseButton-primary"] * {color: ${prim_txt} !important;}
+    /* Les rangées qui contiennent des boutons (ou les totaux) restent côte à côte sur téléphone */
+    [data-testid="stHorizontalBlock"]:has(.stButton), [data-testid="stHorizontalBlock"]:has(.mcard) {
+        flex-direction: row !important; flex-wrap: nowrap !important; gap: 8px;}
+    [data-testid="stHorizontalBlock"]:has(.stButton) > [data-testid="stColumn"],
+    [data-testid="stHorizontalBlock"]:has(.mcard) > [data-testid="stColumn"],
+    [data-testid="stHorizontalBlock"]:has(.stButton) > div[data-testid="column"],
+    [data-testid="stHorizontalBlock"]:has(.mcard) > div[data-testid="column"] {
+        min-width: 0 !important; width: auto !important; flex: 1 1 0 !important;}
+    div[data-testid="stVerticalBlockBorderWrapper"] .stButton button {min-height: 50px; font-size: 1rem;}
 
-    .mcard {border-radius: 16px; padding: 14px 16px; font-weight: 600; display: flex;
-            flex-direction: column; gap: 2px; border: 3px solid ${contour};}
-    .mcard b {font-size: 1.7rem;}
-    .mcard.leclerc {background: ${leclerc_bg}; color: ${leclerc_txt};}
-    .mcard.lidl {background: ${lidl_bg}; color: ${lidl_txt};}
+    /* ---------- Courses ---------- */
+    .mcard {border-radius: 16px; padding: 12px 14px; font-weight: 600; display: flex;
+            flex-direction: column; gap: 2px; border: ${epais} solid ${contour};}
+    .mcard b {font-size: 1.5rem;}
+    .mcard.leclerc {background: ${leclerc_bg}; color: ${leclerc_txt} !important;}
+    .mcard.lidl {background: ${lidl_bg}; color: ${lidl_txt} !important;}
+    .mcard.leclerc *, .mcard.leclerc b {color: ${leclerc_txt} !important;}
+    .mcard.lidl *, .mcard.lidl b {color: ${lidl_txt} !important;}
     .gagnant {background: ${gagnant_bg}; color: ${gagnant_txt}; border-radius: 16px; padding: 16px;
               font-size: 1.1rem; margin: 12px 0; text-align: center;}
+    .gagnant * {color: ${gagnant_txt} !important;}
     .astuce {background: ${astuce_bg}; color: ${texte}; border-left: 6px solid ${accent}; border-radius: 12px;
              padding: 12px 14px; margin-top: 14px;}
     .halalbox {background: ${halalbox_bg}; color: ${texte}; border-left: 6px solid ${accent}; border-radius: 12px;
                padding: 12px 14px; margin-top: 10px;}
+    .astuce *, .halalbox * {color: ${texte} !important;}
 </style>
 """)
 
